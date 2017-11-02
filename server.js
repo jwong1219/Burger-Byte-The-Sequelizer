@@ -3,7 +3,7 @@ var bodyParser = require("body-parser");
 var methodOverride = require("method-override");
 var exphbs = require("express-handlebars");
 
-var PORT = process.env.PORT || 5005;
+var PORT = process.env.PORT || 5006;
 
 var app = express();
 
@@ -12,6 +12,8 @@ app.use(express.static("./public"));
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+app.use(bodyParser.text());
+app.use(bodyParser.json({ type: "application/vnd.api+json" }));
 
 //allows us to catch put methods from form requests with modified tags
 app.use(methodOverride('_method'));
@@ -19,10 +21,13 @@ app.use(methodOverride('_method'));
 app.engine("handlebars", exphbs({defaultLayout: "main"}));
 app.set("view engine", "handlebars");
 
-var routes = require("./controllers/burgers_controller.js");
-
+var routes = require("./routes/api-routes.js");
 app.use("/", routes);
 
-app.listen(PORT, function() {
-  console.log("listening on port: " + PORT);
+var db = require("./models");
+
+db.sequelize.sync().then(function() {
+  app.listen(PORT, function() {
+    console.log("listening on port: " + PORT);
+  });
 });
